@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.Modal;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ namespace Musical_WebStore_BlazorApp.Client
             services.AddScoped<UserService, UserService>();
             services.AddScoped<CommentService, CommentService>();
             services.AddScoped<StarService, StarService>();
+            services.AddBlazoredModal();
         }
 
         public void Configure(IComponentsApplicationBuilder app)
