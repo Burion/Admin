@@ -32,17 +32,14 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             _mapper = mapper;
         }
         private Task<Order[]> GetOrdersAsync() => ctx.Orders.ToArrayAsync();
-        [HttpGet]
-        public async Task<IEnumerable<ChatModel>> Get()
-        {
-            var chats = await GetOrdersAsync();
-            return chatsmodels;
-        }
 
         [Route("addorder")]
-        public Task<AddOrderResult> AddOrder(AddOrderModel)
+        public AddOrderResult AddOrder(AddOrderModel model)
         {
-            //...
+            var order = _mapper.Map<Order>(model);
+            ctx.Orders.Add(order);
+            ctx.SaveChanges();
+            return new AddOrderResult() { Successful = true };
         }
 
     }
