@@ -16,6 +16,7 @@ public class MappingProfile : Profile {
         CreateMap<Chat, ChatModel>();
         CreateMap<Message, MessageModel>();
         CreateMap<AddMessageModel, Message>();
+        CreateMap<OrderType, OrderTypeViewModel>();
         
     }
 }
