@@ -31,6 +31,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
         public DbSet<CompanyUser> CompanyUsers {get;set;}
         public DbSet<Service> Services {get;set;}
         public DbSet<ServiceUser> ServiceUsers {get;set;}
+        public DbSet<Order> Orders {get;set;}
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<ChatUser>().HasKey(cu => new {cu.ChatId, cu.UserId});
