@@ -17,6 +17,7 @@ public class MappingProfile : Profile {
         CreateMap<Message, MessageModel>();
         CreateMap<AddMessageModel, Message>();
         CreateMap<OrderType, OrderTypeViewModel>();
+        CreateMap<AddOrderModel, Order>();
         
     }
 }

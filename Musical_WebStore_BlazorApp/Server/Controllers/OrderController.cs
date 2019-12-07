@@ -45,6 +45,8 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
         public AddOrderResult AddOrder(AddOrderModel model)
         {
             var order = _mapper.Map<Order>(model);
+            order.Date = DateTime.Now;
+            order.UserId = _userManager.FindByEmailAsync(User.Identity.Name).Id;
             ctx.Orders.Add(order);
             ctx.SaveChanges();
             return new AddOrderResult() { Successful = true };
