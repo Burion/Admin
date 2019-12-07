@@ -4,6 +4,8 @@
 @using System.Linq
 @using Admin.ResultModels
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime jsRuntime;
+@inject IModalService Modal
 <div class="row">   
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
@@ -41,7 +43,13 @@
     <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Linda James</h6>
+                        <div>
+                            <h6  class="m-0 font-weight-bold text-primary">Linda James</h6>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" @onclick="@(() => ShowModal())">Make order</button>
+                        </div>
+
                     </div>
                     <div class="card-body">
                         <div class="messages">
@@ -83,6 +91,11 @@
     </div>
 </div>
 
+
+
+
+
+
 @code
 {
     [Parameter]
@@ -92,6 +105,7 @@
     public MessageModel[] messages = null;
     public AddMessageModel addMessageModel = new AddMessageModel();
     string email = "";
+    int DeleteId = 0;
     protected override async Task OnInitializedAsync()
     {
         chats = await client.GetJsonAsync<ChatModel[]>("api/chats/getchats");
@@ -111,5 +125,9 @@
     private async Task RefreshMessages()
     {
         messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
+    }
+    private void ShowModal()
+    {
+        Modal.Show<Modal>("Making Order");
     }
 }
