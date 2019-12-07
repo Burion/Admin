@@ -1,0 +1,186 @@
+﻿@page "/list"
+@page "/list/{Type}"
+@using Musical_WebStore_BlazorApp.Shared
+@using Admin.ViewModels
+@using Microsoft.AspNetCore.Blazor
+@using System.IO;
+@inject HttpClient client
+<head>
+
+</head>
+<h3 class="inst-title">Instruments</h3>
+
+<div class="row">
+                        
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Map of your locations</h6>
+            </div>
+            <div class="card-body">
+                <div id="map">
+                    <img src="images/maps.png" width="100%" height="100%">
+                </div>
+            </div>                    
+        </div>
+    </div>
+
+<div class="col-xl-4 col-lg-5">
+    <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Map of your locations</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-boarded table-hover"  width="100%" cellspacing="0">
+                
+                        @if(locations == null)
+                        {
+                            <text>Loading...</text>
+                        }
+                        else
+                        {
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Name
+                                    </th>
+                                    <th>
+                                        Adress
+                                    </th>
+                                    <th>
+                                        Status
+                                    </th>   
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach(var loc in locations)
+                            {
+                                <tr>
+                                    <th>
+                                        @loc.Name
+                                    </th>
+                                    <th>
+                                        @loc.Address
+                                    </th>
+                                    @{string statusClass = "";}
+                                    @switch(@loc.Status)
+                                    {
+                                        case (int)Statuses.Normal: 
+                                        statusClass = "nrm";
+                                        break;
+                                        case (int)Statuses.Warning: 
+                                        statusClass = "awr";
+                                        break;
+                                        case (int)Statuses.Danger:
+                                        statusClass = "crtcl"; 
+                                        break;
+                                    }
+                                    <th class="@statusClass">
+                                        <div>
+                                            <i class="fas fa-tint text-white"></i>
+                                            <i class="fas fa-tint text-white"></i>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-thermometer-three-quarters text-white"></i>
+                                        </div>
+                                    </th>
+                                </tr>
+                            }
+                        </tbody>
+                        }
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if (instruments == null)
+{
+    <p><em>Loading instruments...</em></p>
+}
+else
+{
+    <AuthorizeView>
+        <Authorized>
+            @if (context.User.IsInRole("Admin"))
+            {
+                <a href="/goodsmanagement/addGood" class="btn btn-primary">Add a good...</a>
+            }
+        </Authorized>
+    </AuthorizeView>
+
+    <div class="card-deck">
+        @foreach (var instrument in instruments)
+        {
+            <div class="col-6 col-sm-3 p-2" style="min-width: 18rem; max-width: 30.5%;">
+                <div class="card text-center">
+                    <a href='instrument/@instrument.Id'>
+                        <img href=# class="card-img-top pt-2" src="@instrument.Image" alt="Card image cap" style="height: 400px; width: 90%;">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">@instrument.Title</h5>
+                        <h5 class="card-text">Price: $@instrument.Price</h5>
+                        <p class="card-text">@instrument.Description</p>
+                        <p class="card-text">TYPE: @instrument.TypeName</p>
+                        <a href="#" class="btn btn-primary m-1">Add to Cart</a>
+                        <AuthorizeView>
+                            <Authorized>
+                                @if (context.User.IsInRole("Admin"))
+                                {
+                                    <button class="btn btn-primary m-1" @onclick="@(() => DeleteGood(@instrument.Id))">Delete</button>
+                                    <a href="goodsmanagement/editGood/@instrument.Id" class="btn btn-primary m-1">Edit</a>
+                                }
+                            </Authorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    List<Instrument> all_instruments = null;
+    List<LocationViewModel> locations = null;
+    List<Instrument> instruments = null;
+    [Parameter]
+    public string Type { get; set; }
+
+    private async Task DeleteGood(int id)
+    {
+        var obj = new DeleteGoodModel { Id = id };
+
+        await client.PostJsonAsync("api/Goodsmanagement/deletegood", obj);
+
+        var item = all_instruments.First(i => i.Id == id);
+
+        all_instruments.Remove(item);
+        instruments.Remove(item);
+
+        this.StateHasChanged();
+    }
+    protected override void OnParametersSet()
+    {
+        RefreshFilter();
+        Console.WriteLine(Type);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        locations = await client.GetJsonAsync<List<LocationViewModel>>("api/locations");
+        instruments = await client.GetJsonAsync<List<Instrument>>("api/Instruments");
+        all_instruments = instruments;
+    }
+    private void RefreshFilter()
+    {
+        if (!String.IsNullOrWhiteSpace(Type))
+        {
+            instruments = all_instruments?.Where(i => i.TypeName == Type).ToList();
+        }
+        else
+        {
+            instruments = all_instruments;
+        }
+    }
+}

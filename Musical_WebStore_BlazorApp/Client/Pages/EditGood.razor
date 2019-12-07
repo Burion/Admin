@@ -1,0 +1,126 @@
+﻿@page "/goodsmanagement/editGood/{Id:int}"
+@using Musical_WebStore_BlazorApp.Shared
+@using System.IO
+@using BlazorInputFile
+@using Microsoft.AspNetCore.Blazor.Services
+@inject NavigationManager navManager
+@inject HttpClient client
+
+<div class="card">
+    <div class="card-body">
+        @if (IsSending)
+        {
+            <p>Sending...</p>
+        }
+        else
+        {
+            <h5 class="card-title">Edit the good</h5>
+            <EditForm Model="@EditGoodModel" OnValidSubmit="@HandleEditing">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <InputText id="description" class="form-control" @bind-Value="@EditGoodModel.Description" />
+                    <ValidationMessage For="@(() => EditGoodModel.Description)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <InputNumber id="price" class="form-control" @bind-Value="EditGoodModel.Price" />
+                    <ValidationMessage For="@(() => EditGoodModel.Price)" />
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <InputNumber id="quantity" class="form-control" @bind-Value="EditGoodModel.Quantity" />
+                    <ValidationMessage For="@(() => EditGoodModel.Quantity)" />
+                </div>
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <InputText id="title" class="form-control" @bind-Value="EditGoodModel.Title" />
+                    <ValidationMessage For="@(() => EditGoodModel.Title)" />
+                </div>
+                <div class="form-group">
+                    <label for="typename">Type</label>
+                    <InputSelect id="typename" class="form-control" @bind-Value="EditGoodModel.TypeName">
+                        <option value="">Select type..</option>
+                        <option value="Milk">Milk</option>
+                        <option value="Coffee">Coffee</option>
+                        <option value="Guitar">Guitar</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => EditGoodModel.TypeName)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Upload photo</label>
+                    <InputFile OnChange="FileChanged" />
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private const string HtmlImageIdentifier = "image/";
+
+    private EditGoodModel EditGoodModel = new EditGoodModel();
+    private bool IsSending = false;
+
+    private static bool ValidateType(string type) => ! String.IsNullOrWhiteSpace(type);
+    private static bool ValidateFile(IFileListEntry file) => file.Type.StartsWith(HtmlImageIdentifier);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var instrument = await client.GetJsonAsync<Instrument>($"api/GoodsManagement/GetGood/{Id}");
+
+        if (instrument == null)
+        {
+            navManager.NavigateTo("/goodsmanagement/addGood");
+        }
+
+        EditGoodModel.Id = instrument.Id;
+        EditGoodModel.Description = instrument.Description;
+        EditGoodModel.Price = instrument.Price;
+        EditGoodModel.Quantity = instrument.Quantity;
+        EditGoodModel.Title = instrument.Title;
+        EditGoodModel.TypeName = instrument.TypeName;
+        EditGoodModel.ImageSrc = instrument.Image;
+
+        this.StateHasChanged();
+    }
+
+    private async Task FileChanged(IFileListEntry[] files)
+    {
+        var file = files.FirstOrDefault();
+
+        if (file == null)
+            return;
+
+        if (!ValidateFile(file))
+            return;
+
+        using (var ms = new MemoryStream())
+        {
+            await file.Data.CopyToAsync(ms);
+
+            var strBytes = Convert.ToBase64String(ms.GetBuffer());
+
+            EditGoodModel.ImageBytes = strBytes;
+            EditGoodModel.ImageType = file.Type.Substring(HtmlImageIdentifier.Length);
+        }
+    }
+
+    private async Task HandleEditing()
+    {
+        if (!ValidateType(EditGoodModel.TypeName))
+            return;
+
+        IsSending = true;
+        await client.PostJsonAsync("api/goodsmanagement/editGood", EditGoodModel);
+        IsSending = false;
+    }
+}

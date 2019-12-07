@@ -1,0 +1,115 @@
+@page "/chats/{Index}"
+@inject HttpClient client
+@using Admin.ViewModels
+@using System.Linq
+@using Admin.ResultModels
+@inject AuthenticationStateProvider AuthenticationStateProvider
+<div class="row">   
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Your chats</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-boarded table-hover" >
+                        <tbody>
+                        @if(chats == null)
+                        {
+                            <text>Loading...</text>
+                        }
+                        else
+                        {
+                            @foreach(var chat in chats)
+                            {
+                                <tr>
+                                @if(chat.ChatUsersNames.Count() > 0)
+                                {
+                                    <text>@chat.ChatUsersNames.First()</text>
+                                }
+                                
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Linda James</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="messages">
+                                <ul>
+                                    <li class="notification">
+                                        <p>
+                                            Conversation was started
+                                        </p>
+                                    </li>
+                                    @if(messages == null)
+                                    {
+                                        <text>Loading...</text>
+                                    }
+                                    else
+                                    {
+                                        @foreach(var mes in messages)
+                                        {   
+                                            string mesclass = mes.User.Email == email ? "sent" : "replies";
+                                            <li class="@mesclass">
+                                            <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">               
+                                            <p>@mes.Text</p>
+                                            </li>
+                                        }
+
+                                    }
+                                    
+                                    
+                                </ul>
+                                    <EditForm Model="@addMessageModel" OnValidSubmit="@SendMessage">
+                                        <InputText @bind-Value="addMessageModel.Text" type="text" class="form-control bg-gray border-1" placeholder="Write your message..." aria-label="Search" aria-describedby="basic-addon2"/>
+                                        <i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+                                        <button class="submit">Send</button>
+                                    </EditForm>
+                        </div>
+                                </div>
+                                
+                        </div>
+                        
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string Index {get;set;}
+
+    public ChatModel[] chats = null;
+    public MessageModel[] messages = null;
+    public AddMessageModel addMessageModel = new AddMessageModel();
+    string email = "";
+    protected override async Task OnInitializedAsync()
+    {
+        chats = await client.GetJsonAsync<ChatModel[]>("api/chats/getchats");
+        messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        email = user.Identity.Name;
+    }
+
+    protected async Task SendMessage()
+    {
+        var result = await client.PostJsonAsync<AddMessageResult>("api/chats/addmessage", addMessageModel);
+        await RefreshMessages();
+        this.StateHasChanged();
+    }
+
+    private async Task RefreshMessages()
+    {
+        messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
+    }
+}

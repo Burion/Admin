@@ -1,0 +1,103 @@
+﻿@page "/goodsmanagement/addGood"
+@using Musical_WebStore_BlazorApp.Shared
+@using System.IO
+@using Microsoft.AspNetCore.Blazor
+@using BlazorInputFile
+@inject HttpClient client
+@inject IJSRuntime JSRuntime;
+
+<div class="card">
+    <div class="card-body">
+        @if (IsSending)
+        {
+            <p>Sending...</p>
+        }
+        else
+        {
+            <h5 class="card-title">Please enter your details</h5>
+            <EditForm Model="@AddGoodModel" OnValidSubmit="@HandleAdding">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <InputText id="description" class="form-control" @bind-Value="AddGoodModel.Description" />
+                    <ValidationMessage For="@(() => AddGoodModel.Description)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <InputNumber id="price" class="form-control" @bind-Value="AddGoodModel.Price" />
+                    <ValidationMessage For="@(() => AddGoodModel.Price)" />
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <InputNumber id="quantity" class="form-control" @bind-Value="AddGoodModel.Quantity" />
+                    <ValidationMessage For="@(() => AddGoodModel.Quantity)" />
+                </div>
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <InputText id="title" class="form-control" @bind-Value="AddGoodModel.Title" />
+                    <ValidationMessage For="@(() => AddGoodModel.Title)" />
+                </div>
+                <div class="form-group">
+                    <label for="typename">Type</label>
+                    <InputSelect id="typename" class="form-control" @bind-Value="AddGoodModel.TypeName">
+                        <option value="">Select type..</option>
+                        <option value="Amplifier">Amplifier</option>
+                        <option value="Pedal">Pedal</option>
+                        <option value="Guitar">Guitar</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => AddGoodModel.TypeName)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="photo">Upload photo</label>
+                    <InputFile OnChange="FileChanged" />
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    private const string HtmlImageIdentifier = "image/";
+
+    private AddGoodModel AddGoodModel = new AddGoodModel();
+    private bool IsSending = false;
+
+
+    private static bool ValidateFile(IFileListEntry file) => file.Type.StartsWith(HtmlImageIdentifier);
+
+    private async Task FileChanged(IFileListEntry[] files)
+    {
+        var file = files.FirstOrDefault();
+
+        if (file == null)
+            return;
+
+        if (!ValidateFile(file))
+            return;
+
+        using (var ms = new MemoryStream())
+        {
+            await file.Data.CopyToAsync(ms);
+
+            var strBytes = Convert.ToBase64String(ms.GetBuffer());
+
+            AddGoodModel.ImageBytes = strBytes;
+            AddGoodModel.ImageType = file.Type.Substring(HtmlImageIdentifier.Length);
+        }
+    }
+
+    private async Task HandleAdding()
+    {
+        if (AddGoodModel.ImageType == null || AddGoodModel.ImageBytes == null)
+            return;
+
+        IsSending = true;
+        await client.PostJsonAsync("api/goodsmanagement/addGood", AddGoodModel);
+        IsSending = false;
+    }
+}
