@@ -32,6 +32,8 @@ namespace Musical_WebStore_BlazorApp.Server.Data
         public DbSet<Service> Services {get;set;}
         public DbSet<ServiceUser> ServiceUsers {get;set;}
         public DbSet<Order> Orders {get;set;}
+
+        public DbSet<OrderType> OrderTypes {get;set;}
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<ChatUser>().HasKey(cu => new {cu.ChatId, cu.UserId});
@@ -253,7 +255,33 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                       Image = "YAAAAA.png"
                   }  
                 );
-
+                
+            blder.Entity<OrderType>().HasData(
+                new OrderType()
+                {
+                    Id = -1,
+                    Minutes = 30,
+                    Name = "Very Urgent"
+                },
+                new OrderType()
+                {
+                    Id = -2,
+                    Minutes = 60,
+                    Name = "Urgent"
+                },
+                new OrderType()
+                {
+                    Id = -3,
+                    Minutes = 120,
+                    Name = "So-so"
+                },
+                new OrderType()
+                {
+                    Id = -4,
+                    Minutes = 240,
+                    Name = "Just be here today"
+                }
+            );
 
             blder.Entity<User>()
                 .HasData(

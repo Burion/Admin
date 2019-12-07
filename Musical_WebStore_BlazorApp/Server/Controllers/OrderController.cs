@@ -32,7 +32,15 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             _mapper = mapper;
         }
         private Task<Order[]> GetOrdersAsync() => ctx.Orders.ToArrayAsync();
-
+        
+        public Task<List<OrderType>> GetOrderTypesAsync() => ctx.OrderTypes.ToListAsync();
+        [Route("getordertypes")]
+        public async Task<List<OrderTypeViewModel>> GetOrderTypes()
+        {
+            var otvms = await GetOrderTypesAsync();
+            var otvmViews = otvms.Select(ot => _mapper.Map<OrderTypeViewModel>(ot)).ToList();
+            return otvmViews;
+        }
         [Route("addorder")]
         public AddOrderResult AddOrder(AddOrderModel model)
         {
