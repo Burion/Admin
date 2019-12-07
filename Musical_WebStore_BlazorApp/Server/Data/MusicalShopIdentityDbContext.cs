@@ -34,6 +34,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
         public DbSet<Order> Orders {get;set;}
 
         public DbSet<OrderType> OrderTypes {get;set;}
+        public DbSet<OrderStatus> OrderStatuses {get;set;}
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<ChatUser>().HasKey(cu => new {cu.ChatId, cu.UserId});
@@ -255,7 +256,39 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                       Image = "YAAAAA.png"
                   }  
                 );
-                
+            blder.Entity<OrderStatus>().HasData(
+                new OrderStatus()
+                {
+                    Id = -1,
+                    Name = "In confirmaion"
+                },
+                new OrderStatus()
+                {
+                    Id = -2,
+                    Name = "Confirmed"
+                },
+                new OrderStatus()
+                {
+                    Id = -3,
+                    Name = "In Process"
+                },
+                new OrderStatus()
+                {
+                    Id = -4,
+                    Name = "Successfully Processed"
+                },
+                new OrderStatus()
+                {
+                    Id = -5,
+                    Name = "Failure"
+                },
+                new OrderStatus()
+                {
+                    Id = -6,
+                    Name = "Freezed"
+                }
+            );
+            
             blder.Entity<OrderType>().HasData(
                 new OrderType()
                 {
