@@ -9,6 +9,9 @@ app {
     display: flex;
     flex-direction: column;
 }
+.card-header div {
+  display: inline-block;
+}
 
 .top-row {
     height: 3.5rem;
