@@ -31,12 +31,18 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             _userManager = userManager;
             _mapper = mapper;
         }
-        private Task<Chat[]> GetOrdersAsync() => ctx.Orders.ToArrayAsync();
+        private Task<Order[]> GetOrdersAsync() => ctx.Orders.ToArrayAsync();
         [HttpGet]
         public async Task<IEnumerable<ChatModel>> Get()
         {
             var chats = await GetOrdersAsync();
             return chatsmodels;
+        }
+
+        [Route("addorder")]
+        public Task<AddOrderResult> AddOrder(AddOrderModel)
+        {
+            //...
         }
 
     }
