@@ -31,6 +31,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
         public DbSet<CompanyUser> CompanyUsers {get;set;}
         public DbSet<Service> Services {get;set;}
         public DbSet<ServiceUser> ServiceUsers {get;set;}
+        public DbSet<OrderWorker> OrderWorkers {get;set;}
         public DbSet<Order> Orders {get;set;}
 
         public DbSet<OrderType> OrderTypes {get;set;}
@@ -40,13 +41,13 @@ namespace Musical_WebStore_BlazorApp.Server.Data
             builder.Entity<ChatUser>().HasKey(cu => new {cu.ChatId, cu.UserId});
             builder.Entity<CompanyUser>().HasKey(cu => new {cu.CompanyId, cu.UserId});
             builder.Entity<ServiceUser>().HasKey(su => new  {su.ServiceId, su.UserId});
-            
+            builder.Entity<OrderWorker>().HasKey(ow => new {ow.OrderId, ow.UserId});
             builder.Entity<ChatUser>().HasOne(cu => cu.Chat).WithMany(u => u.ChatUsers).HasForeignKey(cu => cu.ChatId);
 
             builder.Entity<ServiceUser>().HasOne(su => su.Service).WithMany(s => s.ServiceUsers).HasForeignKey(su => su.ServiceId);
 
             builder.Entity<CompanyUser>().HasOne(cu => cu.Company).WithMany(c => c.CompanyUsers).HasForeignKey(cu => cu.CompanyId);
-
+            builder.Entity<OrderWorker>().HasOne(ow => ow.Order).WithMany(o => o.OrderWorkers).HasForeignKey(ow => ow.OrderId);
 
             builder.Entity<Guitar>()
                 .HasBaseType<Instrument>();
@@ -253,7 +254,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                   {
                       Id = -1, 
                       Name = "Fucker's company",
-                      Image = "YAAAAA.png"
+                      Image = "Comp.png"
                   }  
                 );
             blder.Entity<OrderStatus>().HasData(
@@ -323,12 +324,6 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                         Id = "qwjehfpkjnvdpjwn3pro",
                         Email = "vladislavburyak00@gmail.com",
                         UserName = "Fucker"
-                    }, 
-                    new User
-                    {
-                        Id = "service",
-                        Email = "fuckerfucker@gmail.com",
-                        UserName = "Six"
                     }
                 );
 
@@ -338,7 +333,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     new CompanyUser()
                     {
                         CompanyId = -1,
-                        UserId = "qwjehfpkjnvdpjwn3pro"
+                        UserId = "1"
                     }
                 );
 
@@ -360,6 +355,11 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 {
                     ServiceId = -1, 
                     UserId = "service"
+                },
+                new ServiceUser()
+                {
+                    ServiceId = -1, 
+                    UserId = "worker"
                 }
             );
             blder.Entity<Chat>().HasData
@@ -374,7 +374,9 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 {
                     Id = -2, 
                     Name = "Second Fucker's chat",
-                    Description = "Second Motherfucker's chat"                    
+                    Description = "Second Motherfucker's chat",
+                    ServiceId = -1,
+                    CompanyId = -1
                 }
             );
 
@@ -424,7 +426,12 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 new ChatUser()
                 {
                     ChatId = -1,
-                    UserId = "service"
+                    UserId = "1"
+                },
+                new ChatUser()
+                {
+                    ChatId = -2,
+                    UserId = "1"
                 }
             );
 
