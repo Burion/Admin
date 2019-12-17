@@ -4,7 +4,6 @@
 <EditForm Model="@addOrderModel" OnValidSubmit="@AddOrder">
 <label>Write text for order:</label>
 <InputText @bind-Value="addOrderModel.Text" type="text" class="form-control bg-gray border-1" placeholder="Write your message..." aria-label="Search" aria-describedby="basic-addon2"/>
-<InputText @bind-Value="addOrderModel.ServiceId" type="text" value="@serviceId" class="form-control bg-gray border-1" placeholder="Write your message..." aria-label="Search" aria-describedby="basic-addon2" hidden/>
 <InputSelect @bind-Value="addOrderModel.DeviceId" class="form-control">
     @if(sensors == null)
     {
