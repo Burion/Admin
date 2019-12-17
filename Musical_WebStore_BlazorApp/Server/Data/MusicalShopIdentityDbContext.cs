@@ -345,7 +345,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     Address = "Jopa mira",
                     Image = "service",
                     Name = "Fuckers and co.",
-
+                    Phone = "+38(095)233-46-21"
                 }
             );
 
