@@ -32,18 +32,25 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             _mapper = mapper;
         }
         private Task<Chat[]> GetChatsAsync() => ctx.Chats.ToArrayAsync();
-        [HttpGet]
-        public async Task<IEnumerable<ChatModel>> Get()
+
+        [Route("getchats/{email}")]
+        public async Task<ChatModel[]> GetChats(string email)
         {
+            var user = await _userManager.FindByEmailAsync(email);
             var chats = await GetChatsAsync();
-            var chatsmodels = chats.Select(s => new ChatModel(){ Name = s.Name, Description = s.Description, ChatUsersNames = s.ChatUsers.Select(cu => cu.User.Email).ToList()});
+            var chatsmodels = chats.Where(c => c.ChatUsers.Select(cu => cu.UserId).Contains(user.Id)).Select(c => _mapper.Map<ChatModel>(c)).ToArray();
             return chatsmodels;
         }
-        [Route("getchats")]
-        public async Task<ChatModel[]> GetChats()
+        [Route("getchatsforservice")]
+        public async Task<ChatModel[]> GetChatsForService()
         {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            var serviceid = ctx.ServiceUsers.Single(us => us.UserId == user.Id).ServiceId;
             var chats = await GetChatsAsync();
-            var chatsmodels = chats.Select(s => new ChatModel(){ Name = s.Name, Description = s.Description, ChatUsersNames = s.ChatUsers.Select(cu => cu.User.Email).ToList()}).ToArray();
+            var chatsmodels = chats.Where(c => c.ServiceId == serviceid)
+            .Where(cm => ctx.ChatUsers.Where(cu => cu.ChatId == cm.Id).Count() == 1)
+            .Select(c => _mapper.Map<ChatModel>(c))
+            .ToArray();
             return chatsmodels;
         }
         public Task<Message[]> GetMessagesAsync() => ctx.Messages.ToArrayAsync();
@@ -66,8 +73,31 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             ctx.Messages.Add(mes);
             await ctx.SaveChangesAsync();
             return new AddMessageResult() {Success = true};
+        }
 
+        [Route("joinchat")]
+        public async Task<Result> JoinChat(JoinChatModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            ctx.ChatUsers.Add
+            (
+                new ChatUser()
+                {
+                    ChatId = model.ChatId,
+                    UserId = user.Id
+                }
+            );
+            await ctx.SaveChangesAsync();
             
+            return new Result() {Successful = true};
+        }
+
+        [Route("getusers")]
+        public async Task<UserLimited[]> GetUsers()
+        {
+            var users = await _userManager.Users.ToArrayAsync();
+            var res = users.Select(u => _mapper.Map<UserLimited>(u)).ToArray();
+            return res;
         }
 
     }
