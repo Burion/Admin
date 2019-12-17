@@ -24,6 +24,7 @@ public class MappingProfile : Profile {
         CreateMap<Company, CompanyModel>();
         CreateMap<OrderWorker, OrderWorkerModel>();
         CreateMap<AddWorkerToOrderModel, OrderWorker>();
+        CreateMap<Service, ServicePageModel>();
         
     }
 }
