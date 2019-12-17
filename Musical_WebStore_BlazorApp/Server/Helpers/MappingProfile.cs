@@ -18,6 +18,12 @@ public class MappingProfile : Profile {
         CreateMap<AddMessageModel, Message>();
         CreateMap<OrderType, OrderTypeViewModel>();
         CreateMap<AddOrderModel, Order>();
+        CreateMap<Service, ServiceViewModel>();
+        CreateMap<Order, OrderViewModel>();
+        CreateMap<OrderStatus, OrderStatusViewModel>();
+        CreateMap<Company, CompanyModel>();
+        CreateMap<OrderWorker, OrderWorkerModel>();
+        CreateMap<AddWorkerToOrderModel, OrderWorker>();
         
     }
 }
