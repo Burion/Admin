@@ -11,6 +11,7 @@ namespace Admin.ViewModels
         public int OrdersSucceedCount {get;set;}
         public int ReviewsCount {get;set;}
         public float AvarageMark {get;set;}
+        public string About {get;set;}
 
     }
 }
