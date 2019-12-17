@@ -16,6 +16,31 @@
                 <div class="table-responsive">
                     <table class="table table-boarded table-hover" >
                         <tbody>
+                            @if(nonConfirmedChats == null)
+                            {
+                                <text>There's no unconfirmed chats</text>
+                            }
+                            else
+                            {
+                                foreach(var chat in nonConfirmedChats)
+                                {
+
+                                    <div class="row bg-warning">
+                                        <div class="col">
+                                            <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">  
+                                        </div>
+                                        <div class="col">
+                                            <p>@chat.Company.Name</p>
+                                        </div>
+                                        <div class="col">
+                                            <button @onclick="@(() => JoinChat(@chat.Id))" class="btn btn-danger">Join chat</button>
+                                        </div>
+                                        
+                                    </div>
+                                }
+                            }
+                                
+
                         @if(chats == null)
                         {
                             <text>Loading...</text>
@@ -24,14 +49,30 @@
                         {
                             @foreach(var chat in chats)
                             {
-                                <tr>
-                                @if(chat.ChatUsersNames.Count() > 0)
-                                {
-                                    <text>@chat.ChatUsersNames.First()</text>
-                                }
-                                
+                                <tr @onclick="@(()=> SelectChat(@chat.Id))">
+                                    <td>
+                                        <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">
+                                    </td>
+                                    <td>
+                                        
+                                        @if(messages == null)
+                                        {
+                                            <text>Loading...</text>
+                                        }
+                                        else
+                                        {
+                                            if(@messages.Where(m => m.ChatId == chat.Id).Count() > 0)
+                                            {
+                                            <p style="text-align: left;">@messages.Where(m => m.ChatId == chat.Id).Last().User.UserName</p>
+                                            <p style="text-overflow: ellipsis;
+                                            white-space: nowrap;
+                                            overflow: hidden;
+                                            width:50%; text-align: left;">@messages.Where(m => m.ChatId == chat.Id).Last().Text</p>
+                                            }
+                                        }
+                                    </td>
                                 </tr>
-                            }
+                                }
                         }
                         </tbody>
                     </table>
@@ -65,7 +106,7 @@
                                     }
                                     else
                                     {
-                                        @foreach(var mes in messages)
+                                        @foreach(var mes in shownmessages)
                                         {   
                                             string mesclass = mes.User.Email == email ? "sent" : "replies";
                                             <li class="@mesclass">
@@ -100,23 +141,38 @@
 {
     [Parameter]
     public string Index {get;set;}
-
+    public int ChatId {get;set;}
     public ChatModel[] chats = null;
     public MessageModel[] messages = null;
+    public MessageModel[] shownmessages = null;
     public AddMessageModel addMessageModel = new AddMessageModel();
+    public ChatModel[] nonConfirmedChats = null;
     string email = "";
     int DeleteId = 0;
+    System.Security.Claims.ClaimsPrincipal user = null;
     protected override async Task OnInitializedAsync()
     {
-        chats = await client.GetJsonAsync<ChatModel[]>("api/chats/getchats");
-        messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        user = authState.User;
         email = user.Identity.Name;
+        chats = await client.GetJsonAsync<ChatModel[]>("api/chats/getchats/" + email);
+        messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
+        shownmessages = messages;
+        if(user.IsInRole("ServiceOperator"))
+        {
+            await GetChatsForService();
+        }
     }
 
+    void SelectChat(int chatId)
+    {
+        shownmessages = messages.Where(m => m.ChatId == chatId).ToArray();
+        ChatId = chatId;
+        this.StateHasChanged();
+    }
     protected async Task SendMessage()
     {
+        addMessageModel.ChatId = ChatId;
         var result = await client.PostJsonAsync<AddMessageResult>("api/chats/addmessage", addMessageModel);
         await RefreshMessages();
         this.StateHasChanged();
@@ -125,9 +181,21 @@
     private async Task RefreshMessages()
     {
         messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
+        SelectChat(ChatId);
+    }
+    async Task GetChatsForService()
+    {
+        nonConfirmedChats = await client.GetJsonAsync<ChatModel[]>("api/chats/getchatsforservice/");
     }
     private void ShowModal()
     {
         Modal.Show<Modal>("Making Order");
+    }
+    async void JoinChat(int chatId)
+    {
+        var joinChatModel = new JoinChatModel() {ChatId = chatId};
+        var res = await client.PostJsonAsync<Result>("api/chats/joinchat", joinChatModel);
+        GetChatsForService();
+        this.StateHasChanged();
     }
 }
