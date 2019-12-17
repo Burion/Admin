@@ -1,0 +1,36 @@
+@using Admin.ResultModels
+@using Admin.ViewModels
+@inject HttpClient client
+<EditForm Model="@addWorkerToOrderModel" OnValidSubmit="@AddWorker">
+<label>Write text for order:</label>
+<InputSelect @bind-Value="addWorkerToOrderModel.UserId">
+@if(workers != null)
+@foreach(var w in workers)
+{
+    <option value="@w.Id"> @w.UserName </option>
+}
+</InputSelect>
+<button class="btn btn-primary" type="submit">Add</button>
+</EditForm>
+
+
+@code
+{
+    AddWorkerToOrderModel addWorkerToOrderModel = new AddWorkerToOrderModel();
+    UserLimited[] workers = null;
+    
+    [CascadingParameter] ModalParameters Parameters { get; set; }
+    int OrderId {get;set;}
+
+    protected override async Task OnInitializedAsync()
+    {
+        OrderId = Parameters.Get<int>("OrderId");
+        workers = await client.GetJsonAsync<UserLimited[]>("api/order/getworkers/" + OrderId);
+    }
+    protected void AddWorker()
+    {
+        addWorkerToOrderModel.OrderId = OrderId;
+        client.PostJsonAsync<Result>("api/order/addworkertoorder", addWorkerToOrderModel);
+    }
+    
+}

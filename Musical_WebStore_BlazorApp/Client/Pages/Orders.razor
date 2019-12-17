@@ -1,0 +1,150 @@
+@page "/orders"
+@inject HttpClient client
+@using Admin.ViewModels
+@using Admin.ResultModels
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IModalService Modal
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Cards</h1>  
+</div>
+@if(user != null)
+{
+
+    @if(user.IsInRole("CompanyOperator"))
+    {
+        
+        <div class="d-sm-flex">
+        <h1 class="h4 m-2">Sort:</h1>
+        <select class="form-control">
+            <option>Older</option>
+            <option>Newer</option>
+            <option>Price</option>
+        </select>
+        <h1 class="h4 m-2">Made:</h1>
+        <select class="form-control">
+            <option>By me</option>
+            <option>By my company</option>
+        </select>
+        <h1 class="h4 m-2">Status:</h1>
+        <select class="form-control">
+        <option>All</option>
+        <option>Active</option>
+        <option>Archived</option>
+    </select>
+</div>
+}
+
+@if(orders == null)
+{
+    <text>Loading...</text>
+}
+else
+@foreach(var o in orders)
+{
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Module:</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@o.Device.Name</div>
+                        </div>
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Service</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@o.Service.Name</div>
+                        </div>
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Ordering Date</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@o.Date</div>
+                        </div>
+                        @if(user.IsInRole("Worker"))
+                        {
+                            
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Status:</div>
+                                <EditForm Model = "@editOrderStatusModel" OnValidSubmit="@(() => EditOrderStatus(o.Id))">
+                                    <InputSelect @bind-Value="editOrderStatusModel.OrderStatusId" class="form-control">
+                                        @if(orderstatuses == null)
+                                        {
+                                            <text>Loading...</text>
+                                        }
+                                        else
+                                        @foreach(var os in orderstatuses)
+                                        {
+                                            if(os.Id == o.OrderStatus.Id)
+                                {
+                                    
+                                    <option selected="selected" value="@os.Id.ToString()">@os.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@os.Id.ToString()">@os.Name</option>
+                                }
+                            }
+                        </InputSelect>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </EditForm>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Status:</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@o.OrderStatus.Name</div>
+                            </div>
+                        }
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    if(user.IsInRole("ServiceOperator"))
+    {
+        @foreach(var worker in o.OrderWorkers)
+        {
+                <div class="row">
+                    <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">
+                    <div>
+                        @worker.User.UserName
+                    </div>
+                </div>
+            }
+        <button @onclick="@(() => ShowModal(@o.Id))" class="btn btn-primary">Add Worker</button> 
+    }
+}
+}
+
+@code
+{
+    public List<OrderViewModel> orders = null;
+    public List<OrderStatusViewModel> orderstatuses = null;
+    System.Security.Claims.ClaimsPrincipal user = null;
+    private EditOrderStatusModel editOrderStatusModel = new EditOrderStatusModel();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await client.GetJsonAsync<List<OrderViewModel>>("api/order/getorders");
+        orderstatuses = await client.GetJsonAsync<List<OrderStatusViewModel>>("api/order/getorderstatuses");
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+    }
+        
+    protected async void EditOrderStatus(int id)
+    {
+        editOrderStatusModel.Id = id.ToString();
+        var result = await client.PostJsonAsync<EditOrderStatusResult>("api/order/editorderstatus", editOrderStatusModel);
+    }
+
+    void ShowModal(int orderId)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("OrderId", orderId);
+        Modal.Show<AddWorkerToOrder>("Adding Worker To Order", parameters);
+    }
+}
