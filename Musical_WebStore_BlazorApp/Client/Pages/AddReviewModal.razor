@@ -1,0 +1,34 @@
+@using Admin.ResultModels
+@using Admin.ViewModels
+@inject HttpClient client
+<EditForm Model="@addReviewModel" OnValidSubmit="@AddReview">
+<label>Write text for order:</label>
+<InputText @bind-Value="addReviewModel.Text" type="text" class="form-control bg-gray border-1" placeholder="Write your message..." aria-label="Search" aria-describedby="basic-addon2"/>
+<label>Leave your mark: </label>
+<InputSelect @bind-Value="addReviewModel.Mark" class="form-control">
+    @for(int x = 1; x < 6; x++)
+    {
+    <option value="@x.ToString()">@x</option>
+    }
+    
+</InputSelect>
+<button type="submit" class="btn btn-primary">Add Review</button>
+</EditForm>
+
+
+@code
+{
+    AddReviewModel addReviewModel = new AddReviewModel();
+    [CascadingParameter] ModalParameters Parameters { get; set; }
+    int ServiceId {get;set;}
+
+    protected override async Task OnInitializedAsync()
+    {
+        ServiceId = Parameters.Get<int>("ServiceId");
+    }
+    protected void AddReview()
+    {
+        addReviewModel.ServiceId = ServiceId;
+        client.PostJsonAsync<Result>("api/reviews/addreview", addReviewModel);
+    }
+}
