@@ -8,6 +8,6 @@ namespace Musical_WebStore_BlazorApp.Server.Data.Models
 {
     public class User : IdentityUser
     {
-        // add other custom properties for the user model here...
+        public string Position {get;set;}
     }
 }
