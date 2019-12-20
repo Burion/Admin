@@ -91,7 +91,6 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             order.Date = DateTime.Now;
             order.UserId = _userManager.FindByEmailAsync(User.Identity.Name).Result.Id;
             order.OrderStatusId = -1;
-            order.ServiceId = -1; 
             ctx.Orders.Add(order);
             ctx.SaveChanges();
             return new AddOrderResult() { Successful = true };

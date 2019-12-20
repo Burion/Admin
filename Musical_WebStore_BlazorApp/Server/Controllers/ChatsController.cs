@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Admin.Extentions;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -75,6 +76,40 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             return new AddMessageResult() {Success = true};
         }
 
+        [Route("addchat")]
+        public async Task<Result> AddChat(AddChatModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            var chat = new Chat()
+            {
+                Name = user.GetCompany(ctx).Name + " - " + ctx.Services.Single(s => s.Id == model.ServiceId).Name,
+                Description = "—",
+                ServiceId = model.ServiceId,
+                CompanyId = user.GetCompany(ctx).Id
+            };
+            ctx.Chats.Add(chat);
+            ctx.SaveChanges();
+            ctx.ChatUsers.Add(
+                new ChatUser()
+                {
+                    UserId = user.Id,
+                    ChatId = chat.Id
+                }
+            );
+            ctx.SaveChanges();
+            ctx.Messages.Add(
+                new Message()
+                {
+                    Date = DateTime.Now,
+                    ChatId = chat.Id,
+                    Text = "Conversation was started",
+                }
+            );
+            ctx.SaveChanges();
+            return new Result() { Successful = true};
+
+        }
+
         [Route("joinchat")]
         public async Task<Result> JoinChat(JoinChatModel model)
         {
@@ -87,11 +122,23 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
                     UserId = user.Id
                 }
             );
+            ctx.Messages.Add(
+                new Message()
+                {
+                    ChatId = model.ChatId,
+                    Text = $"{user.UserName} joined chat."
+                }
+            );
             await ctx.SaveChangesAsync();
             
             return new Result() {Successful = true};
         }
-
+        [Route("getchatusers/{chatId}")]
+        public async Task<ChatUserModel[]> GetChatUsers(int chatId)
+        {
+            var cuModels = ctx.ChatUsers.Where(cu => cu.ChatId == chatId).Select(cu => _mapper.Map<ChatUserModel>(cu)).ToArray();
+            return cuModels;
+        }
         [Route("getusers")]
         public async Task<UserLimited[]> GetUsers()
         {
