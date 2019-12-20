@@ -1,6 +1,8 @@
 @page "/services/{ServiceId}"
 @using Admin.ViewModels
 @inject HttpClient client
+@inject IModalService Modal
+@using Admin.ResultModels
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
 <h1 class="h3 mb-0 text-gray-800">Cards</h1>
 </div>
@@ -46,7 +48,7 @@
         <div class="row no-gutters align-items-center">
             <div class="col mr-2">
             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">or</div>
-            <button class="btn btn-primary">Write message</button>
+            <button @onclick="@(() => CreateChat())" class="btn btn-primary">Write message</button>
         </div>
     </div>
 </div>
@@ -176,42 +178,36 @@
         <h6 class="m-0 font-weight-bold text-primary">Rewiews</h6>
     </div>
     <div class="card-body">
-        <div class="card border-left-warning shadow h-100 py-2">
-        <div class="card-body">
-            <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-                <img class="rounded-circle" width="100%" src="https://keenthemes.com/preview/metronic/theme/assets/pages/media/profile/profile_user.jpg">
-            </div>
-            <div>
-                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Peter Gringoff, "Caroline's oil"</div>
+        @if(Model != null)
+        @foreach(var rev in Model.Reviews)
+        {
+
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <img class="rounded-circle" width="100%" src="https://keenthemes.com/preview/metronic/theme/assets/pages/media/profile/profile_user.jpg">
+                        </div>
+                        <div>
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">@rev.User.UserName <text>, "</text> @rev.Company.Name <text>"</text></div>
                 <div class="text-warning mb-0 font-weight-bold">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
+                    @for(int m = 0; m < int.Parse(rev.Mark); m++)
+                    {
+                        <i class="fas fa-star"></i>
+                    }
+
                 </div>
-                <div class="text-body mb-0 font-italic text-gray-800">"Perfect. It's definedly not the last time we are working together."</div>
+
+                <div class="text-body mb-0 font-italic text-gray-800">@rev.Text</div>
                 
             </div>
-            </div>
         </div>
-        </div>
-        <div class="card border-left-warning shadow h-100 py-2">
-        <div class="card-body">
-            <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-                <img class="rounded-circle" width="100%" src="https://keenthemes.com/preview/metronic/theme/assets/pages/media/profile/profile_user.jpg">
-            </div>
-            <div>
-                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Peter Gringoff, "Caroline's oil"</div>
-                <div class="text-body mb-0 font-italic text-gray-800">"Perfect. It's definedly not the last time we are working together."</div>
-            </div>
-            </div>
-        </div>
-        </div>
-        
+    </div>
+</div>
+}
+
         <button class="btn btn-primary">See all reviews</button>
+        <button @onclick="@(() => ShowModal(@ServiceId))" class="btn btn-primary">Leave review</button>
     </div>
     </div>
 
@@ -264,5 +260,19 @@
     protected override async Task OnInitializedAsync()
     {
         Model = await client.GetJsonAsync<ServicePageModel>("api/services/getservices/" + ServiceId);
+    }
+
+    private void ShowModal(string serviceId)
+    {
+        ModalParameters parameters = new ModalParameters();
+        parameters.Add("ServiceId", int.Parse(ServiceId));
+        Modal.Show<AddReviewModal>("Add review", parameters);  
+    }
+
+    private async Task CreateChat()
+    {
+        AddChatModel model = new AddChatModel();
+        model.ServiceId = int.Parse(ServiceId);
+        await client.PostJsonAsync<Result>("api/chats/addchat", model);
     }
 }

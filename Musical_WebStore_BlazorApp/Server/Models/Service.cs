@@ -12,6 +12,6 @@ namespace Admin.Models
     public string Phone {get;set;}
     public string About {get;set;}
     public virtual IEnumerable<ServiceUser> ServiceUsers {get;set;} 
-
+    public virtual IEnumerable<Review> Reviews {get;set;}
     }
 }

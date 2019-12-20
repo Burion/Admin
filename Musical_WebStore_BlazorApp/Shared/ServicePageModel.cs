@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 namespace Admin.ViewModels
 {
     public class ServicePageModel
@@ -12,6 +13,7 @@ namespace Admin.ViewModels
         public int ReviewsCount {get;set;}
         public float AvarageMark {get;set;}
         public string About {get;set;}
+        public IEnumerable<ReviewModel> Reviews {get;set;}
 
     }
 }
