@@ -34,6 +34,14 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
 
                     throw new InvalidOperationException("Exception at seeding users: " + completeException);
                 }
+                var result1 = userManager.AddToRoleAsync(user, "CompanyOperator").GetAwaiter().GetResult();
+
+                if (!result1.Succeeded)
+                {
+                    var completeException = string.Join(", ", result1.Errors.Select(i => i.Description));
+
+                    throw new InvalidOperationException("Exception at seeding users: " + completeException);
+                }
 
             }
 
