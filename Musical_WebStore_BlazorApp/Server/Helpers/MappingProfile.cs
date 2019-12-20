@@ -25,6 +25,8 @@ public class MappingProfile : Profile {
         CreateMap<OrderWorker, OrderWorkerModel>();
         CreateMap<AddWorkerToOrderModel, OrderWorker>();
         CreateMap<Service, ServicePageModel>();
-        
+        CreateMap<Review, ReviewModel>();
+        CreateMap<AddReviewModel, Review>();
+        CreateMap<ChatUser, ChatUserModel>();
     }
 }
