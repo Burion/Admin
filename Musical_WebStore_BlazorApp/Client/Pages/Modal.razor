@@ -33,16 +33,20 @@
 
 @code
 {
+    [CascadingParameter] ModalParameters Parameters {get;set;}
+    public int ServiceId {get;set;}
     AddOrderModel addOrderModel = new AddOrderModel();
     List<DeviceViewModel> sensors = null;
     List<OrderTypeViewModel> ordertypes = null;
     protected override async Task OnInitializedAsync()
     {
+        ServiceId = Parameters.Get<int>("ServiceId");
         sensors = await client.GetJsonAsync<List<DeviceViewModel>>("api/locations/getdevices");
         ordertypes = await client.GetJsonAsync<List<OrderTypeViewModel>>("api/order/getordertypes");
     }
     protected void AddOrder()
     {
+        addOrderModel.ServiceId = ServiceId;
         client.PostJsonAsync<AddOrderResult>("api/order/addorder", addOrderModel);
     }
 }

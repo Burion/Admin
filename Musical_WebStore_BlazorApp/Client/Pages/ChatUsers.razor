@@ -1,0 +1,49 @@
+@using Admin.ResultModels
+@using Admin.ViewModels
+@inject HttpClient client
+
+
+<div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Chat Members</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-boarded table-hover" >
+                        <tbody>
+                            @if(chatUserModels != null)
+                            @foreach(var cu in chatUserModels)
+                            {
+                                
+                                <tr>
+                                    <div class="row">
+                                        <div class="col">
+                                            <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">  
+                                        </div>
+                                        <div class="col">
+                                            @cu.User.UserName
+                                        </div>
+                                        <div class="col">
+                                            @cu.User.Position
+                                        </div>
+                                    </div>
+                                </tr>
+                                }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+</div>
+
+@code
+{
+    [CascadingParameter] ModalParameters Parameters {get;set;}
+    public int ChatId {get;set;}
+
+    public ChatUserModel[] chatUserModels {get;set;}
+    protected override async Task OnInitializedAsync()
+    {
+        ChatId = Parameters.Get<int>("ChatId");
+        chatUserModels = await client.GetJsonAsync<ChatUserModel[]>("api/chats/getchatusers/" + ChatId);
+    }
+}

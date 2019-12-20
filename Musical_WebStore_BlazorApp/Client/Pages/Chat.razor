@@ -63,7 +63,7 @@
                                         {
                                             if(@messages.Where(m => m.ChatId == chat.Id).Count() > 0)
                                             {
-                                            <p style="text-align: left;">@messages.Where(m => m.ChatId == chat.Id).Last().User.UserName</p>
+                                            <p style="text-align: left; font-weight: bold;">@chat.Name</p>
                                             <p style="text-overflow: ellipsis;
                                             white-space: nowrap;
                                             overflow: hidden;
@@ -84,47 +84,67 @@
     <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <div>
-                            <h6  class="m-0 font-weight-bold text-primary">Linda James</h6>
-                        </div>
-                        <div>
-                            <button class="btn btn-primary" @onclick="@(() => ShowModal())">Make order</button>
-                        </div>
+                        @if(ChatId != 0)
+                        {
+                            <i @onclick="@(() => ShowMembersModal())" class="fas fa-user-friends"></i>
+                            <div>
+                                <h6  class="m-0 font-weight-bold text-primary">@chats.Single(c => c.Id == ChatId).Service.Name</h6>
+                            </div>
+                            if(user != null)
+                            {
+
+                                if(user.IsInRole("CompanyOperator"))
+                                {
+                                    
+                                    <div>
+                                        <button class="btn btn-primary" @onclick="@(() => ShowModal())">Make order</button>
+                                    </div>
+                                }
+                            }
+                        }
 
                     </div>
                     <div class="card-body">
+                        @if(shownmessages == null)
+                        {
+                            <text>Select chat to start conversation.</text>
+                        }
+                        else
+                        {
                         <div class="messages">
                                 <ul>
-                                    <li class="notification">
-                                        <p>
-                                            Conversation was started
-                                        </p>
-                                    </li>
-                                    @if(messages == null)
-                                    {
-                                        <text>Loading...</text>
-                                    }
-                                    else
-                                    {
                                         @foreach(var mes in shownmessages)
                                         {   
-                                            string mesclass = mes.User.Email == email ? "sent" : "replies";
-                                            <li class="@mesclass">
-                                            <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">               
-                                            <p>@mes.Text</p>
-                                            </li>
+                                            string mesclass = "";
+                                            if(mes.User != null)
+                                            {
+
+                                                mesclass = mes.User.Email == email ? "sent" : "replies";
+                                                <li class="@mesclass">
+                                                    <img class="rounded-circle" src="https://source.unsplash.com/fn_BT9fwg_E/60x60" alt="">               
+                                                    <p>@mes.Text</p>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li class="notification">
+                                                    <p>
+                                                        @mes.Text
+                                                    </p>
+                                                </li>
+                                            }
                                         }
 
-                                    }
-                                    
-                                    
-                                </ul>
+                                        
+                                        
+                                    </ul>
                                     <EditForm Model="@addMessageModel" OnValidSubmit="@SendMessage">
                                         <InputText @bind-Value="addMessageModel.Text" type="text" class="form-control bg-gray border-1" placeholder="Write your message..." aria-label="Search" aria-describedby="basic-addon2"/>
                                         <i class="fa fa-paperclip attachment" aria-hidden="true"></i>
                                         <button class="submit">Send</button>
                                     </EditForm>
-                        </div>
+                                </div>
+                            }
                                 </div>
                                 
                         </div>
@@ -157,7 +177,7 @@
         email = user.Identity.Name;
         chats = await client.GetJsonAsync<ChatModel[]>("api/chats/getchats/" + email);
         messages = await client.GetJsonAsync<MessageModel[]>("api/chats/getmessages");
-        shownmessages = messages;
+        shownmessages = null;
         if(user.IsInRole("ServiceOperator"))
         {
             await GetChatsForService();
@@ -189,7 +209,9 @@
     }
     private void ShowModal()
     {
-        Modal.Show<Modal>("Making Order");
+        ModalParameters parameters = new ModalParameters();
+        parameters.Add("ServiceId", chats.Single(c => c.Id == ChatId).Service.Id);
+        Modal.Show<Modal>("Making Order", parameters);
     }
     async void JoinChat(int chatId)
     {
@@ -197,5 +219,11 @@
         var res = await client.PostJsonAsync<Result>("api/chats/joinchat", joinChatModel);
         GetChatsForService();
         this.StateHasChanged();
+    }
+    async Task ShowMembersModal()
+    {
+        ModalParameters parameters = new ModalParameters();
+        parameters.Add("ChatId", ChatId);
+        Modal.Show<ChatUsers>("Members", parameters);
     }
 }
