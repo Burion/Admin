@@ -10,6 +10,7 @@ namespace Admin.ViewModels
         public string Description {get;set;}
         public int CompanyId {get;set;}
         public CompanyModel Company {get;set;}
+        public ServiceViewModel Service {get;set;}
     }
     
 }
