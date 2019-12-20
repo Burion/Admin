@@ -33,6 +33,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
         public DbSet<ServiceUser> ServiceUsers {get;set;}
         public DbSet<OrderWorker> OrderWorkers {get;set;}
         public DbSet<Order> Orders {get;set;}
+        public DbSet<Review> Reviews {get;set;}
 
         public DbSet<OrderType> OrderTypes {get;set;}
         public DbSet<OrderStatus> OrderStatuses {get;set;}
@@ -345,7 +346,8 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     Address = "Jopa mira",
                     Image = "service",
                     Name = "Fuckers and co.",
-                    Phone = "+38(095)233-46-21"
+                    Phone = "+38(095)233-46-21",
+                    About = "We are the most advanced company in service field and repairing. Our expierence - 3 years of quality work."
                 }
             );
 
@@ -354,12 +356,14 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 new ServiceUser()
                 {
                     ServiceId = -1, 
-                    UserId = "service"
+                    UserId = "service",
+                    Position = "Manager"
                 },
                 new ServiceUser()
                 {
                     ServiceId = -1, 
-                    UserId = "worker"
+                    UserId = "worker",
+                    Position = "Worker"
                 }
             );
             blder.Entity<Chat>().HasData
@@ -369,14 +373,6 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     Id = -1, 
                     Name = "Fucker's chat",
                     Description = "Motherfucker's chat"                    
-                },
-                new Chat()
-                {
-                    Id = -2, 
-                    Name = "Second Fucker's chat",
-                    Description = "Second Motherfucker's chat",
-                    ServiceId = -1,
-                    CompanyId = -1
                 }
             );
 
@@ -396,22 +392,6 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     ChatId = -1,
                     Date = DateTime.Now,
                     Text = "I just wanted to ask you something."
-                },
-                new Message() 
-                {
-                    Id = -3, 
-                    UserId = "qwjehfpkjnvdpjwn3pro",
-                    ChatId = -2,
-                    Date = DateTime.Now,
-                    Text = "Тошо ты пидор, епта."
-                },
-                new Message() 
-                {
-                    Id = -4, 
-                    UserId = "qwjehfpkjnvdpjwn3pro",
-                    ChatId = -2,
-                    Date = DateTime.Now,
-                    Text = "А может это ты пидор?"
                 }
             );
 
@@ -427,10 +407,15 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 {
                     ChatId = -1,
                     UserId = "1"
-                },
-                new ChatUser()
-                {
-                    ChatId = -2,
+                }
+            );
+            blder.Entity<Review>().HasData(
+                new Review() {
+                    Id = -1, 
+                    CompanyId = -1,
+                    Mark = 3,
+                    ServiceId = -1,
+                    Text = "Not too good, not too bad.",
                     UserId = "1"
                 }
             );
