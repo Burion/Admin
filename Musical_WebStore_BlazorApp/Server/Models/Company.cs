@@ -7,6 +7,7 @@ namespace Admin.Models
     {
         public string Name {get;set;}
         public string Image {get;set;}
+        public DateTime CreationDate {get;set;}
 
         public virtual IEnumerable<CompanyUser> CompanyUsers {get;set;}
     }

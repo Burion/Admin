@@ -1,0 +1,25 @@
+@inject HttpClient client
+@using Admin.ViewModels
+@using Admin.ResultModels
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IModalService Modal
+
+<EditForm Model="orgModel" OnValidSubmit="AddOrg">
+    <label>Enter brand new companie's owner email:</label>
+    <InputText @bind-Value="orgModel.OwnersEmail"/>
+    <InputSelect @bind-Value="orgModel.Type">
+        <option value="">Select type of organisation...</option>
+        <option value="Company">Company</option>
+        <option value="Service">Service</option>
+    </InputSelect>
+    <button type="submit" class="btn btn-primary">Add service</button>
+</EditForm>
+
+@code
+{
+    public AddOrgModel orgModel = new AddOrgModel();
+    private async Task AddOrg()
+    {
+        var result = await client.PostJsonAsync<Result>("api/management/addorg", orgModel);
+    }
+}

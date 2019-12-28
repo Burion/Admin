@@ -11,6 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Admin.Models;
 using AutoMapper;
 using Admin.ViewModels;
+using Admin.ResultModels;
+using Microsoft.AspNetCore.Identity;
+using Musical_WebStore_BlazorApp.Server.Data.Models;
 
 namespace Musical_WebStore_BlazorApp.Server.Controllers
 {
@@ -20,12 +23,17 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
     {
         private readonly MusicalShopIdentityDbContext ctx;
         private readonly IMapper _mapper;
-        public ServicesController(MusicalShopIdentityDbContext ctx, IMapper mapper)
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        public ServicesController(MusicalShopIdentityDbContext ctx, IMapper mapper, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
             this.ctx = ctx;
             _mapper = mapper;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
+        
         [HttpGet]
         public async Task<ServicePageModel[]> Get()
         {

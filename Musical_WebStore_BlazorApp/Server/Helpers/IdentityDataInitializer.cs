@@ -15,6 +15,35 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
 
         public static void SeedUsers(UserManager<User> userManager)
         {
+            if (userManager.FindByNameAsync("test").GetAwaiter().GetResult() == null)
+            {
+                var user = new User
+                {
+                    Id = "0",
+                    UserName = "test",
+                    Email = "test@localhost", 
+                    EmailConfirmed = true,
+                    Position = "Manager"
+                };
+
+                IdentityResult result = userManager.CreateAsync(user, "123abcG$").GetAwaiter().GetResult();
+
+
+                if (!result.Succeeded)
+                {
+                    var completeException = string.Join(", ", result.Errors.Select(i => i.Description));
+
+                    throw new InvalidOperationException("Exception at seeding users: " + completeException);
+                }
+                var result1 = userManager.AddToRoleAsync(user, "CompanyAdmin").GetAwaiter().GetResult();
+
+                if (!result1.Succeeded)
+                {
+                    var completeException = string.Join(", ", result1.Errors.Select(i => i.Description));
+
+                    throw new InvalidOperationException("Exception at seeding users: " + completeException);
+                }
+            }
             if (userManager.FindByNameAsync("test_user").GetAwaiter().GetResult() == null)
             {
                 var user = new User
@@ -22,7 +51,8 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
                     Id = "1",
                     UserName = "test_user",
                     Email = "test_user@localhost", 
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    Position = "Manager"
                 };
 
                 IdentityResult result = userManager.CreateAsync(user, "123abcG$").GetAwaiter().GetResult();
@@ -63,7 +93,7 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
                     throw new InvalidOperationException("Exception at seeding users: " + completeException);
                 }
 
-                var result1 = userManager.AddToRoleAsync(user, "Admin").GetAwaiter().GetResult();
+                var result1 = userManager.AddToRoleAsync(user, "SuperAdmin").GetAwaiter().GetResult();
 
                 if (!result1.Succeeded)
                 {
@@ -79,7 +109,8 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
                     Id = "service",
                     UserName = "service_user",
                     Email = "service_user@localhost", 
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    Position = "Service Manager"
                 };
 
                 IdentityResult result = userManager.CreateAsync(user, "123abcG$").GetAwaiter().GetResult();
@@ -108,7 +139,8 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
                     Id = "worker",
                     UserName = "worker_user",
                     Email = "worker_user@localhost", 
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    Position = "Higher Worker"
                 };
 
                 IdentityResult result = userManager.CreateAsync(user, "123abcG$").GetAwaiter().GetResult();
@@ -134,11 +166,62 @@ namespace Musical_WebStore_BlazorApp.Server.Helpers
 
         public static void SeedRoles(RoleManager<IdentityRole> roleManager)
         {
+            if (!roleManager.RoleExistsAsync("SuperAdmin").GetAwaiter().GetResult())
+            {
+                var role = new IdentityRole
+                {
+                    Name = "SuperAdmin",
+                };
+
+                IdentityResult result = roleManager.CreateAsync(role).GetAwaiter().GetResult();
+
+                if (!result.Succeeded)
+                {
+                    var completeException = string.Join(", ", result.Errors.Select(i => i.Description));
+
+                    throw new InvalidOperationException("Exception at seeding roles: " + completeException);
+                }
+            }
+
             if (!roleManager.RoleExistsAsync("Admin").GetAwaiter().GetResult())
             {
                 var role = new IdentityRole
                 {
                     Name = "Admin",
+                };
+
+                IdentityResult result = roleManager.CreateAsync(role).GetAwaiter().GetResult();
+
+                if (!result.Succeeded)
+                {
+                    var completeException = string.Join(", ", result.Errors.Select(i => i.Description));
+
+                    throw new InvalidOperationException("Exception at seeding roles: " + completeException);
+                }
+            }
+
+            if (!roleManager.RoleExistsAsync("ServiceAdmin").GetAwaiter().GetResult())
+            {
+                var role = new IdentityRole
+                {
+                    Name = "ServiceAdmin",
+                };
+
+                IdentityResult result = roleManager.CreateAsync(role).GetAwaiter().GetResult();
+
+                if (!result.Succeeded)
+                {
+                    var completeException = string.Join(", ", result.Errors.Select(i => i.Description));
+
+                    throw new InvalidOperationException("Exception at seeding roles: " + completeException);
+                }
+            }
+
+            if (!roleManager.RoleExistsAsync("CompanyAdmin").GetAwaiter().GetResult())
+            {
+                var role = new IdentityRole
+                {
+                    Name = "CompanyAdmin",
                 };
 
                 IdentityResult result = roleManager.CreateAsync(role).GetAwaiter().GetResult();

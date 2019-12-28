@@ -1,0 +1,48 @@
+@using Admin.ResultModels
+@using Admin.ViewModels
+@inject HttpClient client
+
+<EditForm Model="@model" OnValidSubmit="@EditEmpQ">
+<InputSelect @bind-Value="model.NewRole" class="form-control">
+    @if(roles == null)
+    {
+        <text>Loading...</text>
+    }
+    else
+    {
+        @foreach(var role in roles)
+        {
+            <option value="@role.Name">
+                @role.Name
+            </option>
+        }
+    }
+</InputSelect>
+    <InputText @bind-Value="model.Position">
+        Write position here...
+    </InputText>
+    <button type="submit" class="btn btn-primary">Confirm</button>
+</EditForm>
+
+
+@code
+{   
+    public EditEmpModel model = new EditEmpModel();
+    [CascadingParameter] ModalParameters Parameters { get; set; }
+    public string UserId {get;set;}
+
+    RoleModel[] roles;
+    protected override async Task OnInitializedAsync()
+    {
+        UserId = Parameters.Get<string>("UserId");   
+        roles = await client.GetJsonAsync<RoleModel[]>("api/management/getroles");
+    }
+
+    private async Task EditEmpQ()
+    {
+        model.Id = UserId;
+
+        await client.PostJsonAsync<Result>("api/management/editemp", model);
+    }
+    
+}

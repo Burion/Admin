@@ -335,7 +335,13 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     {
                         CompanyId = -1,
                         UserId = "1"
+                    },
+                    new CompanyUser()
+                    {
+                        CompanyId = -1,
+                        UserId = "0"
                     }
+
                 );
 
             blder.Entity<Service>()
@@ -356,14 +362,12 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 new ServiceUser()
                 {
                     ServiceId = -1, 
-                    UserId = "service",
-                    Position = "Manager"
+                    UserId = "service"
                 },
                 new ServiceUser()
                 {
                     ServiceId = -1, 
-                    UserId = "worker",
-                    Position = "Worker"
+                    UserId = "worker"
                 }
             );
             blder.Entity<Chat>().HasData

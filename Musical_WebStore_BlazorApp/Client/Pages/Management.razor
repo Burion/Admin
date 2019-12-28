@@ -1,0 +1,221 @@
+@page "/management"
+@inject HttpClient client
+@using Admin.ViewModels
+@using System.Linq
+@using Admin.ResultModels
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IModalService Modal
+
+
+@if(user != null)
+@if(user.IsInRole("SuperAdmin"))
+{
+<div>
+    <button class="btn btn-primary" @onclick="@(() => AddOrgModal())">Add new organisation</button>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h3>
+                    Companies
+                </h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-responsive table-hover">
+                    <thead>
+                        <tr>
+                            <td>
+                                Name
+                            </td>
+                            <td>
+                                CreationDate
+                            </td>
+                            <td>
+                                Head
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(services == null)
+                        {
+                            <text>Loading...</text>
+                        }
+                        else
+                        @foreach(var serv in services)
+                        {
+
+                            <tr>
+                                <td>
+                                @serv.Name
+                            </td>
+                            <td>
+                                @serv.CreationDate
+                            </td>
+                            <td>
+                                Some dick
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h3>
+                    Companies
+                </h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-responsive table-hover">
+                    <thead>
+                        <tr>
+                            <td>
+                                Name
+                            </td>
+                            <td>
+                                CreationDate
+                            </td>
+                            <td>
+                                Head
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(companies == null)
+                        {
+                            <text>Loading...</text>
+                        }
+                        else
+                        @foreach(var comp in companies)
+                        {
+                            <tr>
+                                <td>
+                                @comp.Name
+                            </td>
+                            <td>
+                                @comp.CreationDate
+                            </td>
+                            <td>
+                                Some dick
+                            </td>
+                        </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+}
+else
+@if(user.IsInRole("ServiceAdmin") || user.IsInRole("CompanyAdmin"))
+{
+<div class="row">
+    <div class="col">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h3>
+                    Companies
+                </h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-responsive table-hover">
+                    <thead>
+                        <tr>
+                            <td>
+                                Name
+                            </td>
+                            <td>
+                                Email
+                            </td>
+                            <td>
+                                Position
+                            </td>
+                            <td>
+                                Role
+                            </td>
+                            <td>
+                                Fire    
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(emploees == null)
+                        {
+                            <text>Loading...</text>
+                        }
+                        else
+                        @foreach(var e in emploees)
+                        {
+                            <tr>
+                                <td>
+                                @e.UserName
+                            </td>
+                            <td>
+                                @e.Email
+                            </td>
+                            <td>
+                                @e.Position
+                            </td>
+                            <td>
+                                @e.Role
+                            </td>
+                            <td>
+                                <button @onclick="@(() => EditEmp(@e.Id))">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+@code
+{
+    System.Security.Claims.ClaimsPrincipal user = null;
+    public CompanyModel[] companies;
+    public ServiceViewModel[] services;
+    public UserLimited[] emploees;
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+        companies = await client.GetJsonAsync<CompanyModel[]>("api/management/getcompanies");
+        services = await client.GetJsonAsync<ServiceViewModel[]>("api/management/getservices");
+
+        if(user.IsInRole("ServiceAdmin"))
+        {
+            emploees = await client.GetJsonAsync<UserLimited[]>("api/services/getserviceusers");
+        }
+        else
+        if(user.IsInRole("CompanyAdmin"))
+        {
+            emploees = await client.GetJsonAsync<UserLimited[]>("api/management/getcompanyusers");
+        }
+        else
+        {
+            emploees = await client.GetJsonAsync<UserLimited[]>("api/management/getcompanyusers/-1");
+        }
+    }
+    private async Task AddOrgModal()
+    {
+        Modal.Show<AddServiceCompanyModal>("Add new organisation");
+    }
+    private async Task EditEmp(string userId)
+    {
+        ModalParameters parameters = new ModalParameters();
+        parameters.Add("UserId", userId);
+        Modal.Show<EditEmp>("Edit emp.", parameters);
+    }
+}

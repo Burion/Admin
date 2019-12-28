@@ -16,9 +16,15 @@
                 <div class="table-responsive">
                     <table class="table table-boarded table-hover" >
                         <tbody>
+                            
                             @if(nonConfirmedChats == null)
                             {
-                                <text>There's no unconfirmed chats</text>
+                                @if(user != null)
+                                if(user.IsInRole("ServiceOperator"))
+                                {
+
+                                    <text>There's no unconfirmed chats</text>
+                                }
                             }
                             else
                             {

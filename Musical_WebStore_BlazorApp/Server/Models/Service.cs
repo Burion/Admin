@@ -11,6 +11,7 @@ namespace Admin.Models
     public string Address {get;set;}
     public string Phone {get;set;}
     public string About {get;set;}
+    public DateTime CreationDate {get;set;}
     public virtual IEnumerable<ServiceUser> ServiceUsers {get;set;} 
     public virtual IEnumerable<Review> Reviews {get;set;}
     }
