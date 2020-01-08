@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Musical_WebStore_BlazorApp.Server.Data;
-using Musical_WebStore_BlazorApp.Server.Services;
+using Admin.Services;
 using Musical_WebStore_BlazorApp.Shared;
 
 namespace Musical_WebStore_BlazorApp.Server.Controllers

@@ -4,6 +4,7 @@
 @using Admin.ViewModels
 @using Microsoft.AspNetCore.Blazor
 @using System.IO;
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 @inject HttpClient client
 <head>
 
@@ -56,7 +57,7 @@
                             <tbody>
                             @foreach(var loc in locations)
                             {
-                                <tr>
+                                <tr @onclick="@(() => RedirectToLocation(@loc.Id))">
                                     <th>
                                         @loc.Name
                                     </th>
@@ -182,5 +183,9 @@ else
         {
             instruments = all_instruments;
         }
+    }
+    void RedirectToLocation(int LocationId)
+    {
+        navigationManager.NavigateTo("location/" + LocationId.ToString());
     }
 }

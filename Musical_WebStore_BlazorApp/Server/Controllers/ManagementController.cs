@@ -10,10 +10,12 @@ using Musical_WebStore_BlazorApp.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Admin.Models;
 using AutoMapper;
+using Admin.Decisions;
 using Admin.ViewModels;
 using Admin.ResultModels;
 using Microsoft.AspNetCore.Identity;
 using Musical_WebStore_BlazorApp.Server.Data.Models;
+using Admin.Services;
 
 namespace Musical_WebStore_BlazorApp.Server.Controllers
 {
@@ -25,12 +27,16 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public ManagementController(MusicalShopIdentityDbContext ctx, IMapper mapper, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly ServicesDecisionHendler _decisionHendler;
+        private readonly IFileSavingService fileSavingService;
+        public ManagementController(MusicalShopIdentityDbContext ctx, IMapper mapper, UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ServicesDecisionHendler decisionHendler, IFileSavingService ifileSavingService)
         {
             this.ctx = ctx;
             _mapper = mapper;
             _userManager = userManager;
             _roleManager = roleManager;
+            _decisionHendler = decisionHendler;
+            fileSavingService = ifileSavingService;
         }
         [Route("getservices")]
         public async Task<ServiceViewModel[]> GetServices()
@@ -105,6 +111,14 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             await _userManager.UpdateAsync(user);
             return new Result() {Successful = true};
         }
+
+        [Route("decisions/{city}")]
+        public List<ServiceViewModel> Decision(string city)
+        {
+            var services = _decisionHendler.InitServices(city);
+            return services.Select(s => _mapper.Map<ServiceViewModel>(s)).ToList();
+        }
+
         [Route("addorg")]
         public async Task<Result> AddService(AddOrgModel model)
         {
@@ -141,6 +155,140 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             await ctx.SaveChangesAsync();
             return new Result() {Successful = true};
             //TODO constraints
+        }
+        [Route("getuserinfo")]
+        public async Task<ProfileModel> GetUserInfo()
+        {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            var profileModel = _mapper.Map<ProfileModel>(user);
+            if(ctx.CompanyUsers.Select(cu => cu.UserId).Contains(user.Id))
+            {
+                var company = ctx.CompanyUsers.Single(cu => cu.UserId == user.Id).Company;
+                profileModel.Company = _mapper.Map<CompanyModel>(company);
+            }
+            else if(ctx.ServiceUsers.Select(cu => cu.UserId).Contains(user.Id))
+            {
+                var service = ctx.ServiceUsers.Single(cu => cu.UserId == user.Id).Service;
+                profileModel.Company = _mapper.Map<CompanyModel>(service);
+            }
+            else
+            {
+
+            }
+            return profileModel;
+        }
+
+        [Route("getuserinfo/{userId}")]
+        public async Task<ProfileModel> GetUserInfo(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var profileModel = _mapper.Map<ProfileModel>(user);
+            if(ctx.CompanyUsers.Select(cu => cu.UserId).Contains(user.Id))
+            {
+                var company = ctx.CompanyUsers.Single(cu => cu.UserId == user.Id).Company;
+                profileModel.Company = _mapper.Map<CompanyModel>(company);
+            }
+            else if(ctx.ServiceUsers.Select(cu => cu.UserId).Contains(user.Id))
+            {
+                var service = ctx.ServiceUsers.Single(cu => cu.UserId == user.Id).Service;
+                profileModel.Company = _mapper.Map<CompanyModel>(service);
+            }
+            else
+            {
+
+            }
+            return profileModel;
+        }
+
+        [Route("changepersinfo")]
+        public async Task<Result> ChangePersInfo(PersonalInfo info)
+        {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            var isValid = await _userManager.CheckPasswordAsync(user, info.OldPassword);
+            if(isValid)
+            {
+                await _userManager.ChangePasswordAsync(user, info.OldPassword, info.NewPassword);
+                return new Result() { Successful = true, Error = "Password was changed successfully" };
+            }
+            else
+            {
+                return new Result() { Successful = false, Error = "You entered wrong password" };
+            }
+        }
+        [Route("changegeninfo")]
+        public async Task<Result> ChangeGenInfo(EditGenUserInfo info)
+        {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            user.Name = info.Name;
+            user.PhoneNumber = info.Phone;
+            await _userManager.UpdateAsync(user);
+            return new Result(){ Successful = true};
+        }
+        [Route("fireemp")]
+        public async Task<Result> FireEmp(FireModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if(model.IsInService)
+            {
+                var su = ctx.ServiceUsers.Single(su => su.UserId == model.Id);
+                ctx.ServiceUsers.Remove(su);
+            }
+            else
+            {
+                var cu = ctx.CompanyUsers.Single(cu => cu.UserId == model.Id);
+                ctx.CompanyUsers.Remove(cu);
+            }
+            await ctx.SaveChangesAsync();
+            return new Result(){ Successful = true};
+        }
+        [Route("hireemp")]
+        public async Task<Result> HireEmp(UserLimited model)
+        {
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            var isInService = ctx.ServiceUsers.Select(su => su.UserId).Contains(user.Id);
+            var emp = await _userManager.FindByEmailAsync(model.Email);
+            if(emp == null)
+            {
+                return new Result() {Successful = false, Error = $"There are no users registered with email {model.Email}" };
+            }
+            var alreadyHired = ctx.ServiceUsers.Select(su => su.UserId).Contains(emp.Id);
+            if(alreadyHired) return new Result() { Successful = false, Error = $"{emp.Name} is already hired by another service"};
+            alreadyHired = ctx.CompanyUsers.Select(su => su.UserId).Contains(emp.Id);
+            if(alreadyHired) return new Result() { Successful = false, Error = $"{emp.Name} is already hired by another company"};
+            if(isInService)
+            {
+                
+                int serviceId = ctx.ServiceUsers.Single(su => su.UserId == user.Id).ServiceId;
+                ctx.ServiceUsers.Add(new ServiceUser() { UserId = emp.Id, ServiceId = serviceId});
+            }
+            else
+            {
+                int companyId = ctx.CompanyUsers.Single(su => su.UserId == user.Id).CompanyId;
+                ctx.CompanyUsers.Add(new CompanyUser() { UserId = emp.Id, CompanyId = companyId});
+            }
+            await ctx.SaveChangesAsync();
+            return new Result(){ Successful = true, Error = $"{emp.Name} was hired successfully!"};
+        }
+
+        [Route("changeuserpicture")]
+        public async Task<Result> ChangeUserPicture(AddUserPicture model)
+        {
+            var localFilePath = await SaveAndGetLocalFilePathIfNewerPhoto(model);
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            user.Image = localFilePath;
+            await _userManager.UpdateAsync(user);
+            return new Result(){ Successful = true };
+        }
+        private async Task<string> SaveAndGetLocalFilePathIfNewerPhoto(AddUserPicture model)
+        {
+            bool ValidateImage(AddUserPicture model) => model.ImageBytes != null && model.ImageType != null;
+
+            var localFilePath =
+                ValidateImage(model)
+                ? await fileSavingService.SaveFileAsync(model.ImageBytes, model.ImageType, "images")
+                : null;
+
+            return localFilePath;
         }
     }
 }

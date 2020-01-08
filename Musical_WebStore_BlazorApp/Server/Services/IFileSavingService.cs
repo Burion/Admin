@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Musical_WebStore_BlazorApp.Server.Services
+namespace Admin.Services
 {
     public interface IFileSavingService
     {

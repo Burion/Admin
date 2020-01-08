@@ -116,6 +116,34 @@
 else
 @if(user.IsInRole("ServiceAdmin") || user.IsInRole("CompanyAdmin"))
 {
+    @if(HiringResult != null)
+    {
+    <div>
+        @if(HiringResult.Successful)
+        {
+            <label class="alert-success">@HiringResult.Error</label>
+        }
+        else
+        {
+            <label class="alert-danger">@HiringResult.Error</label>
+        }
+    </div>
+    }
+    
+    @if(IsHiring)
+    {    
+    <div>
+        <EditForm Model="@hireEmpModel" OnValidSubmit="@HireEmp">
+            <label>Enter email:</label>
+            <InputText class="form-control" @bind-Value="hireEmpModel.Email"></InputText>
+            <button class="btn btn-primary" type="submit">Hire Emp</button>
+        </EditForm>
+    </div>
+    }
+    else
+    {
+        <button class="btn btn-primary" @onclick="@(() => SwitchHiring(true))">Hire new user</button>
+    }
 <div class="row">
     <div class="col">
         <div class="card shadow-lg">
@@ -129,7 +157,13 @@ else
                     <thead>
                         <tr>
                             <td>
+                                UserName
+                            </td>
+                            <td>
                                 Name
+                            </td>
+                            <td>
+                                Phone
                             </td>
                             <td>
                                 Email
@@ -141,7 +175,10 @@ else
                                 Role
                             </td>
                             <td>
-                                Fire    
+                                Edit   
+                            </td>
+                            <td>
+                                Fire 
                             </td>
                         </tr>
                     </thead>
@@ -154,8 +191,14 @@ else
                         @foreach(var e in emploees)
                         {
                             <tr>
-                                <td>
-                                @e.UserName
+                            <td>
+                                <a href="profile/@e.Id">@e.UserName</a>
+                            </td>
+                            <td>
+                                @e.Name
+                            </td>
+                            <td>
+                                @e.PhoneNumber
                             </td>
                             <td>
                                 @e.Email
@@ -167,8 +210,13 @@ else
                                 @e.Role
                             </td>
                             <td>
-                                <button @onclick="@(() => EditEmp(@e.Id))">
+                                <button class="btn btn-primary" @onclick="@(() => EditEmp(@e.Id))">
                                     Edit
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="@(() => FireEmp(@e.Id))">
+                                    Fire
                                 </button>
                             </td>
                         </tr>
@@ -187,6 +235,9 @@ else
     public CompanyModel[] companies;
     public ServiceViewModel[] services;
     public UserLimited[] emploees;
+    UserLimited hireEmpModel = new UserLimited();
+    bool IsHiring = false;
+    Result HiringResult = null;
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -217,5 +268,23 @@ else
         ModalParameters parameters = new ModalParameters();
         parameters.Add("UserId", userId);
         Modal.Show<EditEmp>("Edit emp.", parameters);
+    }
+    private async Task FireEmp(string userId)
+    {
+        await client.PostJsonAsync<Result>("api/management/fireemp", new FireModel() { Id = userId, IsInService = user.IsInRole("ServiceAdmin") ? true : false});
+        await OnInitializedAsync();
+        this.StateHasChanged();
+    }
+    private async void HireEmp()
+    {
+        HiringResult = await client.PostJsonAsync<Result>("api/management/hireemp", hireEmpModel);
+        await OnInitializedAsync();
+        IsHiring = false;
+        this.StateHasChanged();
+    }
+    private void SwitchHiring(bool flag)
+    {
+        IsHiring = flag;
+        this.StateHasChanged();
     }
 }

@@ -4,23 +4,76 @@
 @using Admin.ViewModels
 @using Microsoft.AspNetCore.Blazor
 @using System.IO;
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
 @inject HttpClient client
+@using Admin.ResultModels
+@using System.IO
+@using Microsoft.AspNetCore.Blazor
+@using BlazorInputFile
 
+@if(location != null)
+{
 <div class="row">
-                    
+
+    @if(!IsEditing)
+    {   
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Map of your locations</h6>
+            <div class="card-header py-3" style="display: flex; flex-direction: row;">
+                <h6 class="m-0 font-weight-bold text-primary">Location "@location.Name"</h6>
+                <button class="btn btn-outline-primary" @onclick="@(() => SwitchEditing(true))">Change info</button>
             </div>
             <div class="card-body">
-                <div id="map">
-                    <img src="images/beer.jpg" width="100%" height="100%">
+                <div>
+                    <img src="@location.Image" width="100%" height="100%">
                 </div>
-                <h1></h1>
+                <div>
+                    <label>Address:</label>
+                    <label>@location.Address:</label>
+                </div>
+                <div>
+                    <label>Description:</label>
+                    <label>@location.Description</label>
+                </div>
             </div>                    
         </div>
+        
     </div>
+    
+    }
+    else
+    {
+    <div class="col-xl-4 col-lg-5">
+    <EditForm Model="locationModel" OnValidSubmit="EditLocation">
+            
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Location:</h6>
+                <InputText class="form-control" @bind-Value="locationModel.Name"></InputText>
+            </div>
+            <div class="form-group">
+                <label for="photo">Upload photo</label>
+                <InputFile OnChange="FileChanged" />
+            </div>
+            <div class="card-body">
+                <div>
+                    <img src="@location.Image" width="100%" height="100%">
+                </div>
+                <div>
+                    <label>Address:</label>
+                    <InputText class="form-control" @bind-Value="locationModel.Address"></InputText>
+                </div>
+                <div>
+                    <label>Description:</label>
+                    <InputText class="form-control" @bind-Value="locationModel.Description"></InputText>
+                </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Submit</button>                    
+        </div>
+</EditForm>
+    </div>
+    }
 
 <div class="col-xl-8 col-lg-7">
     <div class="card shadow mb-4">
@@ -56,7 +109,7 @@
                             <tbody>
                             @foreach(var dev in modules)
                             {
-                            <tr>
+                            <tr @onclick="@(() => RedirectToLocation(@dev.Id))">
                                 <th>
                                     @dev.Type
                                 </th>
@@ -80,18 +133,65 @@
         </div>
     </div>
 </div>
+}
 
 @code
 
 {   [Parameter]
     public string Index {get;set;}
-    
+    private const string HtmlImageIdentifier = "image/";
+    AddUserPicture addUserPicture = new AddUserPicture();
+    LocationViewModel location = null;
+    LocationViewModel locationModel = new LocationViewModel();
+    bool IsEditing = false;
     List<ModuleViewModel> modules = null;
 
         protected override async Task OnInitializedAsync()
         {
             int ind = int.Parse(Index);
-            modules = await client.GetJsonAsync<List<ModuleViewModel>>("api/locations/getmodules");
+            var locations = await client.GetJsonAsync<List<LocationViewModel>>("api/locations");
+            location = locations.Single(l => l.Id == ind);
+            modules = await client.GetJsonAsync<List<ModuleViewModel>>("api/locations/getmodules/" + Index);
 
+        }
+        void RedirectToLocation(int LocationId)
+        {
+            navigationManager.NavigateTo("modules/" + LocationId.ToString());
+        }
+
+        async void EditLocation()
+        {
+            locationModel.PictureModel = addUserPicture;
+            locationModel.Id = int.Parse(Index);
+            await client.PostJsonAsync<Result>("api/locations/editlocation", locationModel);
+            SwitchEditing(false);
+            await OnInitializedAsync();
+            this.StateHasChanged();
+        }
+        
+        void SwitchEditing(bool flag)
+        {
+            IsEditing = flag;
+            this.StateHasChanged();
+        }
+
+        private static bool ValidateFile(IFileListEntry file) => file.Type.StartsWith(HtmlImageIdentifier);
+        private async Task FileChanged(IFileListEntry[] files)
+        {
+            var file = files.FirstOrDefault();
+
+            if (file == null)
+                return;
+
+            if (!ValidateFile(file))
+                return;
+
+            using (var ms = new MemoryStream())
+            {
+                await file.Data.CopyToAsync(ms);
+                var strBytes = Convert.ToBase64String(ms.GetBuffer());
+                addUserPicture.ImageBytes = strBytes;
+                addUserPicture.ImageType = file.Type.Substring(HtmlImageIdentifier.Length);
+            }
         }
 }

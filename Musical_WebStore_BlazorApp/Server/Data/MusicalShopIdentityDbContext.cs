@@ -243,6 +243,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
         {
             var @base = 10;
 
+            var reviews = new string[] {"Good service, I will happily work with them again.",  "Well, my mark is saying all about this service.", "I hope we will meet again. Good guys."};
             var pedals = GetPedals(@base, @base * 0).ToArray();
             var amps = GetAmplifiers(@base, @base * 1).ToArray();
             var guitars = GetGuitars(@base, @base * 2).ToArray();
@@ -353,7 +354,8 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     Image = "service",
                     Name = "Fuckers and co.",
                     Phone = "+38(095)233-46-21",
-                    About = "We are the most advanced company in service field and repairing. Our expierence - 3 years of quality work."
+                    About = "We are the most advanced company in service field and repairing. Our expierence - 3 years of quality work.",
+                    City = "Odessa"
                 }
             );
 
@@ -368,15 +370,6 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                 {
                     ServiceId = -1, 
                     UserId = "worker"
-                }
-            );
-            blder.Entity<Chat>().HasData
-            (
-                new Chat()
-                {
-                    Id = -1, 
-                    Name = "Fucker's chat",
-                    Description = "Motherfucker's chat"                    
                 }
             );
 
@@ -400,19 +393,6 @@ namespace Musical_WebStore_BlazorApp.Server.Data
             );
 
 
-            blder.Entity<ChatUser>().HasData
-            (
-                new ChatUser()
-                {
-                    ChatId = -1,
-                    UserId = "qwjehfpkjnvdpjwn3pro"
-                }, 
-                new ChatUser()
-                {
-                    ChatId = -1,
-                    UserId = "1"
-                }
-            );
             blder.Entity<Review>().HasData(
                 new Review() {
                     Id = -1, 
@@ -482,7 +462,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data
                     new Module()
                     {
                         Id = -1,
-                        Location = "Right wing of office center",
+                        LocationId = -1,
                         Name = "Cooling block"
                     }
                 );

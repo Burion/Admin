@@ -1,6 +1,8 @@
 @using Admin.ResultModels
 @using Admin.ViewModels
 @inject HttpClient client
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
 <EditForm Model="@addOrderModel" OnValidSubmit="@AddOrder">
 <label>Write text for order:</label>
 <InputText @bind-Value="addOrderModel.Text" type="text" class="form-control bg-gray border-1" placeholder="Write your message..." aria-label="Search" aria-describedby="basic-addon2"/>
@@ -44,9 +46,9 @@
         sensors = await client.GetJsonAsync<List<DeviceViewModel>>("api/locations/getdevices");
         ordertypes = await client.GetJsonAsync<List<OrderTypeViewModel>>("api/order/getordertypes");
     }
-    protected void AddOrder()
+    protected async void AddOrder()
     {
         addOrderModel.ServiceId = ServiceId;
-        client.PostJsonAsync<AddOrderResult>("api/order/addorder", addOrderModel);
+        await client.PostJsonAsync<AddOrderResult>("api/order/addorder", addOrderModel);
     }
 }

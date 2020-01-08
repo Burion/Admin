@@ -18,6 +18,7 @@ namespace Musical_WebStore_BlazorApp.Client
             services.AddScoped<UserService, UserService>();
             services.AddScoped<CommentService, CommentService>();
             services.AddScoped<StarService, StarService>();
+            services.AddScoped<AppState, AppState>();
             services.AddBlazoredModal();
         }
 

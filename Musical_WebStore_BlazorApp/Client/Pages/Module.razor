@@ -99,8 +99,9 @@
             </div>
         </div>
     </div>
-</div>
     
+</div>
+    <button @onclick="@(() => Decide())">Decide</button>
 
 
 
@@ -134,6 +135,10 @@
             var values = meterings.Where(met => met.DeviceId == id).Select(m => m.Value).ToArray();
             var dates = meterings.Where(met => met.DeviceId == id).Select(m => m.Date.ToString()).ToArray();
             jsRuntime.InvokeVoidAsync("CreateChart", values, dates);
+        }
+        public async void Decide()
+        {
+            var servs = await client.GetJsonAsync<List<ServiceViewModel>>("api/management/decisions/" + "Odessa");
         }
         
 }

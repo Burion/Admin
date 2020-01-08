@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Musical_WebStore_BlazorApp.Server.Services
+namespace Admin.Services
 {
     public class FileSavingService : IFileSavingService
     {

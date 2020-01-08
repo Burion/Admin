@@ -9,5 +9,7 @@ namespace Musical_WebStore_BlazorApp.Server.Data.Models
     public class User : IdentityUser
     {
         public string Position {get;set;}
+        public string Image {get;set;}
+        public string Name {get;set;}
     }
 }

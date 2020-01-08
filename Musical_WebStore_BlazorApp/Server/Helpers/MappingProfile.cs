@@ -28,5 +28,7 @@ public class MappingProfile : Profile {
         CreateMap<Review, ReviewModel>();
         CreateMap<AddReviewModel, Review>();
         CreateMap<ChatUser, ChatUserModel>();
+        CreateMap<User, ProfileModel>();
+        CreateMap<Module, ModuleViewModel>();
     }
 }

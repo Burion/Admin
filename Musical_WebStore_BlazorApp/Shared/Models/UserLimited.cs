@@ -9,5 +9,7 @@ namespace Musical_WebStore_BlazorApp.Shared
         public string UserName {get;set;}
         public string Position {get;set;}
         public string Role {get;set;}
+        public string Name {get;set;}
+        public string PhoneNumber {get;set;}
     }
 }

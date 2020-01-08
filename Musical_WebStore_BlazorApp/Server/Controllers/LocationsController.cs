@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Admin.Models;
 using AutoMapper;
 using Admin.ViewModels;
+using Admin.ResultModels;
+using Admin.Services;
 
 namespace Musical_WebStore_BlazorApp.Server.Controllers
 {
@@ -20,10 +22,12 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
     {
         private readonly MusicalShopIdentityDbContext ctx;
         private readonly IMapper _mapper;
-        public LocationsController(MusicalShopIdentityDbContext ctx, IMapper mapper)
+        private readonly IFileSavingService fileSavingService;
+        public LocationsController(MusicalShopIdentityDbContext ctx, IMapper mapper, IFileSavingService fileSavingService)
         {
             this.ctx = ctx;
             _mapper = mapper;
+            this.fileSavingService = fileSavingService;
         }
 
         private Task<Location[]> GetLocationsAsync() => ctx.Locations.ToArrayAsync();
@@ -49,11 +53,11 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             return deviceViewModels;
         }
         public async Task<Module[]> GetDevicesAsync() => await ctx.Modules.ToArrayAsync();
-        [Route("getmodules")]
-        public async Task<IEnumerable<ModuleViewModel>> GetSensors()
+        [Route("getmodules/{locationId}")]
+        public async Task<IEnumerable<ModuleViewModel>> GetSensors(int locationId)
         {
             var devices = await GetDevicesAsync();
-            var deviceViewModels = devices.Select(dev => new ModuleViewModel(){ Name = dev.Name, Location = dev.Location});
+            var deviceViewModels = devices.Where(d => d.LocationId == locationId).Select(dev => _mapper.Map<ModuleViewModel>(dev));
             return deviceViewModels;
         }
 
@@ -64,6 +68,29 @@ namespace Musical_WebStore_BlazorApp.Server.Controllers
             var meterings = await GetMeteringsAsync();
             var meteringsModels = meterings.Select(m => _mapper.Map<MeteringModel>(m));
             return meteringsModels;
+        }
+
+        [Route("editlocation")]
+        public async Task<Result> EditLocation(LocationViewModel model)
+        {
+            var location = ctx.Locations.Single(l => l.Id == model.Id);
+            location.Address = model.Address;
+            location.Description = model.Description = model.Description;
+            location.Name = model.Name;
+            location.Image = await SaveAndGetLocalFilePathIfNewerPhoto(model.PictureModel);
+            await ctx.SaveChangesAsync();
+            return new Result() {Successful = true };
+        }
+        private async Task<string> SaveAndGetLocalFilePathIfNewerPhoto(AddUserPicture model)
+        {
+            bool ValidateImage(AddUserPicture model) => model.ImageBytes != null && model.ImageType != null;
+
+            var localFilePath =
+                ValidateImage(model)
+                ? await fileSavingService.SaveFileAsync(model.ImageBytes, model.ImageType, "images")
+                : null;
+
+            return localFilePath;
         }
     }
 }
